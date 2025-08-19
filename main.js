@@ -1,8 +1,8 @@
 // main.js
-import { handleFileUpload } from './upload.js';
-import { initGallery, toggleActionButtons } from './gallery.js';
-import { initModal, previewImage } from './modal.js';
-import { convertToPdf, downloadPdf } from './pdfConverter.js';
+import { handleFileUpload } from '.upload.js';
+import { initGallery, toggleActionButtons } from '.gallery.js';
+import { initModal, previewImage } from '.modal.js';
+import { convertToPdf, downloadPdf } from '.pdfConverter.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Wire the upload input

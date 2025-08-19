@@ -4,21 +4,45 @@ export let imageNumber = 0;
 
 export function handleFileUpload(event) {
   const files = Array.from(event.target.files);
-  // hide/show containers…
-  // read files via Promise.all…
-  // for each result, call createThumbnail(result);
-  // finally: dispatch a custom event so main.js shows the Convert button
+  const uploadContainer       = document.getElementById('uploadContainer');
+  const descContainer         = document.querySelector('.description-container');
+  const galleryContainer      = document.getElementById('uploadedImagesContainer');
+  const addImageBtnContainer  = document.getElementById('addImageBtnContainer');
+
+  // toggle UI
+  uploadContainer.style.display      = 'none';
+  descContainer.style.display        = 'none';
+  galleryContainer.style.display     = 'flex';
+  addImageBtnContainer.style.display = 'flex';
+
+  // read files
+  Promise.all(files.map(readFile)).then(results => {
+    results.sort((a, b) => a.index - b.index)
+           .forEach(createThumbnail);
+    dispatchImagesReady();
+  });
 }
 
-// Thumbnail creation helper
-function createThumbnail({ file, dataURL, index }) {
+function readFile(file, index) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload    = e => resolve({ file, dataURL: e.target.result, index });
+    reader.onerror   = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function createThumbnail({ file, dataURL }) {
   imageNumber++;
-  // Build DOM elements (wrapper, img, actions) exactly as before
-  // Push into uploadedImages with { id, src: dataURL, element }
-  // Attach imgElem click → dispatch toggle-actions event
+  // build elements (wrapper → number, container→ img, name, actions)…
+  // attach event listeners:
+  //   img click        → dispatch 'toggleActions' custom event
+  //   rotate/delete/preview/edit buttons are delegated in main.js
+  // keep the same DOM structure as before
+  // finally push:
+  uploadedImages.push({ id: imageNumber, src: dataURL, element: wrapper });
 }
 
-// Fire a custom event when images are ready
-function dispatchReadyEvent() {
+function dispatchImagesReady() {
   document.dispatchEvent(new Event('imagesReady'));
 }

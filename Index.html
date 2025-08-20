@@ -2,92 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JPG to PDF Converter</title>
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Vendor libraries -->
+  <!-- External libraries -->
   <script src="https://unpkg.com/pdf-lib@1.4.0"></script>
   <script src="https://unpkg.com/downloadjs@1.4.7"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <!-- Loader Overlay -->
   <div id="loader-overlay" class="loader-overlay">
-    <img
-      src="https://converter.app/jpeg-to-pdf/images/jpeg-to-pdf.png"
-      alt="Loading..."
-      class="loader-image"
-    />
+    <img src="https://converter.app/jpeg-to-pdf/images/jpeg-to-pdf.png" alt="Loading..." class="loader-image"/>
   </div>
 
-  <!-- Header / Taskbar -->
-  <header class="taskbar">
+  <!-- Taskbar with Logo -->
+  <div class="taskbar">
     <div class="logo">
-      <img
-        src="https://converter.app/jpeg-to-pdf/images/jpeg-to-pdf.png"
-        alt="Logo"
-      />
+      <img src="https://converter.app/jpeg-to-pdf/images/jpeg-to-pdf.png" alt="Logo"/>
       <span class="logo-text">JPG to PDF Converter</span>
     </div>
-  </header>
-
-  <!-- Page Heading -->
-  <h2 class="page-heading">JPG to PDF</h2>
-
-  <!-- Controls -->
-  <div class="buttons-container">
-    <button id="convertBtn" onclick="false">SAVE AS PDF</button>
-    <button id="downloadBtn" onclick="false">DOWNLOAD PDF</button>
   </div>
 
-  <!-- Main -->
-  <main>
-    <!-- Upload Section -->
-    <section class="upload-container" id="uploadContainer">
-      <div class="inp-container">
-        <input
-          type="file"
-          id="upload-file"
-          multiple
-          accept="image/*"
-        />
-        <h4 class="drop">DRAG & DROP OR</h4>
-        <i class="fa fa-file-image-o fa-4x img-icon"></i>
-        <label for="upload-file" id="custom-file">CHOOSE FILES</label>
-      </div>
-    </section>
+  <!-- New JPG to PDF heading under taskbar -->
+  <h2 class="page-heading">JPG to PDF</h2>
 
-    <!-- Description -->
-    <section class="description-container">
-      <p>Select one or more JPG images to convert them into a single PDF.</p>
-    </section>
+  <!-- Buttons Container -->
+  <div class="buttons-container">
+    <button id="convertBtn" style="display: none;" onclick="convertToPdf()">SAVE AS PDF</button>
+    <button id="downloadBtn" style="display: none;" onclick="downloadPdf()">DOWNLOAD PDF</button>
+  </div>
 
-    <!-- Gallery -->
-    <section
-      id="uploadedImagesContainer"
-      class="uploaded-images-container"
-      style="display: none;"
-    ></section>
-
-    <!-- Add More Button -->
-    <div
-      id="addImageBtnContainer"
-      class="add-image-btn-container"
-      style="display: none;"
-    >
-      <button class="add-image-btn" onclick="false">Add More Image</button>
+  <!-- Upload Container with blue border -->
+  <div class="upload-container" id="uploadContainer">
+    <div class="inp-container">
+      <input type="file" id="upload-file" onchange="handleFileUpload(event)" multiple accept="image/*"/>
+      <h4 class="drop">DRAG & DROP OR</h4>
+      <p><i class="fa fa-file-image-o fa-4x img-icon"></i></p>
+      <label for="upload-file" id="custom-file">CHOOSE FILES</label>
     </div>
-  </main>
+  </div>
 
-  <!-- Preview Modal -->
+  <!-- Description Container -->
+  <div class="description-container">
+    <p class="upload-description">Select one or more JPG images to convert them into a single PDF.</p>
+  </div>
+
+  <!-- Container for Displaying Uploaded Images -->
+  <div class="uploaded-images-container" id="uploadedImagesContainer" style="display: none;"></div>
+
+  <!-- Add More Image Button -->
+  <div id="addImageBtnContainer" class="add-image-btn-container" style="display: none;">
+    <button class="add-image-btn" onclick="document.getElementById('upload-file').click()">Add More Image</button>
+  </div>
+
+  <!-- Modal for Previewing Images -->
   <div id="previewModal" class="modal">
     <div id="previewContent">
       <div class="preview-image-container">
-        <img id="previewModalImage" class="modal-preview-image" />
+        <img class="modal-preview-image" id="previewModalImage"/>
       </div>
       <div id="previewButtons">
         <button id="modalZoomIn" class="modal-btn">Zoom In</button>
@@ -98,7 +75,7 @@
     </div>
   </div>
 
-  <!-- App Entry Point -->
-  <script type="module" src="app.js"></script>
+  <!-- Custom JavaScript -->
+  <script src="script.js"></script>
 </body>
 </html>

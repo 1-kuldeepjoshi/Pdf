@@ -1,6 +1,6 @@
-import { state } from './state.js';
-import { deleteImage } from './fileHandler.js';
-import { editImage } from './navigation.js';
+import { state } from '.state.js';
+import { deleteImage } from '.fileHandler.js';
+import { editImage } from '.navigation.js';
 
 export function toggleActionButtons(wrapper) {
   document.querySelectorAll('.image-actions').forEach(div => {

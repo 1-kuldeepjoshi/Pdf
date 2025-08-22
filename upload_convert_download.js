@@ -1,0 +1,176 @@
+// Handle file uploads and display images
+function handleFileUpload(event) {
+  const files = Array.from(event.target.files);
+  const uploadedImagesContainer = document.getElementById("uploadedImagesContainer");
+  const uploadContainer = document.getElementById("uploadContainer");
+  const addImageBtnContainer = document.getElementById("addImageBtnContainer");
+  const descriptionContainer = document.querySelector(".description-container");
+
+  uploadContainer.style.display = "none";
+  descriptionContainer.style.display = "none";
+  uploadedImagesContainer.style.display = "flex";
+  addImageBtnContainer.style.display = "flex";
+
+  const fileReadPromises = files.map((file, index) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        resolve({ file, dataURL: e.target.result, index });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  });
+
+  Promise.all(fileReadPromises).then((results) => {
+    results.sort((a, b) => a.index - b.index);
+    results.forEach((result) => {
+      imageNumber++;
+      const imageWrapper = document.createElement("div");
+      imageWrapper.classList.add("uploaded-image");
+      imageWrapper.setAttribute("data-id", imageNumber);
+
+      const imageNumberElem = document.createElement("div");
+      imageNumberElem.classList.add("uploaded-image-number");
+      imageNumberElem.innerText = `#${imageNumber}`;
+
+      const imageContainer = document.createElement("div");
+      imageContainer.classList.add("image-container");
+
+      const imgElem = document.createElement("img");
+      imgElem.src = result.dataURL;
+      imgElem.setAttribute("data-rotation", "0");
+
+      imgElem.onload = function () {
+        const compStyle = window.getComputedStyle(imgElem);
+        imgElem.dataset.origWidth = compStyle.width;
+        imgElem.dataset.origHeight = compStyle.height;
+        imageContainer.style.width = compStyle.width;
+        imageContainer.style.height = compStyle.height;
+      };
+
+      imgElem.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggleActionButtons(imgElem);
+      });
+
+      imageContainer.appendChild(imgElem);
+
+      const nameElem = document.createElement("div");
+      nameElem.classList.add("uploaded-image-name");
+      nameElem.innerText = result.file.name;
+
+      imageWrapper.appendChild(imageNumberElem);
+      imageWrapper.appendChild(imageContainer);
+      imageWrapper.appendChild(nameElem);
+
+      const actionsDiv = document.createElement("div");
+      actionsDiv.classList.add("image-actions");
+
+      const previewBtn = document.createElement("button");
+      previewBtn.classList.add("action-btn");
+      previewBtn.innerHTML = '<i class="fa fa-eye"></i><span class="btn-label">Preview</span>';
+      previewBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        previewImage(imgElem);
+      });
+
+      const editBtn = document.createElement("button");
+      editBtn.classList.add("action-btn");
+      editBtn.innerHTML = '<i class="fa fa-pencil"></i><span class="btn-label">Edit</span>';
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        editImage(result.dataURL);
+      });
+
+      const rotateBtn = document.createElement("button");
+      rotateBtn.classList.add("action-btn");
+      rotateBtn.innerHTML = '<i class="fa fa-rotate-right"></i><span class="btn-label">Rotate</span>';
+      rotateBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        rotateImage(imgElem);
+      });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.classList.add("action-btn");
+      deleteBtn.innerHTML = '<i class="fa fa-trash"></i><span class="btn-label">Delete</span>';
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteImage(imageWrapper.getAttribute("data-id"));
+      });
+
+      actionsDiv.appendChild(previewBtn);
+      actionsDiv.appendChild(editBtn);
+      actionsDiv.appendChild(rotateBtn);
+      actionsDiv.appendChild(deleteBtn);
+      imageWrapper.appendChild(actionsDiv);
+
+      uploadedImagesContainer.appendChild(imageWrapper);
+      uploadedImages.push({ id: imageNumber, src: result.dataURL, element: imageWrapper });
+    });
+    document.getElementById("convertBtn").style.display = "block";
+  });
+}
+
+// Convert uploaded images to PDF
+async function convertToPdf() {
+  const { PDFDocument, degrees } = PDFLib;
+  if (uploadedImages.length === 0) {
+    alert("Please upload at least one image!");
+    return;
+  }
+
+  document.getElementById("loader-overlay").style.display = "flex";
+
+  try {
+    const pdfDoc = await PDFDocument.create();
+
+    for (let img of uploadedImages) {
+      const response = await fetch(img.src);
+      const imgBytes = await response.arrayBuffer();
+      const mimeMatch = img.src.match(/^data:(image\/[a-zA-Z]+);base64,/);
+
+      let embeddedImg;
+      if (mimeMatch && mimeMatch[1] === "image/png") {
+        embeddedImg = await pdfDoc.embedPng(imgBytes);
+      } else {
+        embeddedImg = await pdfDoc.embedJpg(imgBytes);
+      }
+
+      const imgElem = img.element.querySelector("img");
+      const rotation = parseInt(imgElem.getAttribute("data-rotation") || "0", 10) % 360;
+
+      const imgWidth = embeddedImg.width;
+      const imgHeight = embeddedImg.height;
+
+      // ✅ use helper from script.js
+      const params = getPdfRotationParams(rotation, embeddedImg, imgWidth, imgHeight, degrees);
+
+      const page = pdfDoc.addPage(params.size);
+      page.drawImage(embeddedImg, {
+        x: params.x,
+        y: params.y,
+        width: imgWidth,
+        height: imgHeight,
+        rotate: params.rotate || undefined,
+      });
+    }
+
+    pdfBytes = await pdfDoc.save();
+    document.getElementById("downloadBtn").style.display = "block";
+  } catch (error) {
+    console.error("PDF conversion failed:", error);
+    alert("An error occurred while creating the PDF.");
+  } finally {
+    document.getElementById("loader-overlay").style.display = "none";
+  }
+}
+
+// Download the generated PDF
+function downloadPdf() {
+  if (pdfBytes) {
+    download(pdfBytes, "images.pdf", "application/pdf");
+  } else {
+    alert("No PDF to download!");
+  }
+}

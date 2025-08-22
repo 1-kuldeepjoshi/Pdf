@@ -20,6 +20,7 @@ function editImage(dataURL) {
   window.location.href = "edit.html?img=" + encodeURIComponent(dataURL);
 }
 
+// ✅ Rotation function (for UI + keeping rotation state for PDF)
 function rotateImage(imgElem) {
   let currentRotation = parseInt(imgElem.getAttribute("data-rotation") || "0", 10);
   currentRotation = (currentRotation + 90) % 360;
@@ -37,6 +38,28 @@ function rotateImage(imgElem) {
     imageContainer.style.width = origWidth + "px";
     imageContainer.style.height = origHeight + "px";
   }
+}
+
+// ✅ Helper for PDF rotation (to be used inside convertToPdf in upload_convert_download.js)
+function getPdfRotationParams(rotation, embeddedImg, imgWidth, imgHeight, degrees) {
+  let page;
+  switch (rotation) {
+    case 0:
+      page = { size: [imgWidth, imgHeight], x: 0, y: 0, rotate: null };
+      break;
+    case 90:
+      page = { size: [imgHeight, imgWidth], x: 0, y: imgWidth, rotate: degrees(270) };
+      break;
+    case 180:
+      page = { size: [imgWidth, imgHeight], x: imgWidth, y: imgHeight, rotate: degrees(180) };
+      break;
+    case 270:
+      page = { size: [imgHeight, imgWidth], x: imgHeight, y: 0, rotate: degrees(90) };
+      break;
+    default:
+      page = { size: [imgWidth, imgHeight], x: 0, y: 0, rotate: null };
+  }
+  return page;
 }
 
 function deleteImage(imageId) {
